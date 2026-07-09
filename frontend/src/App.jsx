@@ -12,6 +12,8 @@ const Discover = lazy(() => import('./pages/Discover').then((m) => ({ default: m
 const MovieDetail = lazy(() => import('./pages/MovieDetail').then((m) => ({ default: m.MovieDetail })))
 const TvDetail = lazy(() => import('./pages/TvDetail').then((m) => ({ default: m.TvDetail })))
 const PersonDetail = lazy(() => import('./pages/PersonDetail').then((m) => ({ default: m.PersonDetail })))
+const Watched = lazy(() => import('./pages/Watched').then((m) => ({ default: m.Watched })))
+const Library = lazy(() => import('./pages/Library').then((m) => ({ default: m.Library })))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -55,6 +57,8 @@ export default function App() {
             <Route path="/movie/:id" element={<MovieDetail />} />
             <Route path="/tv/:id" element={<TvDetail />} />
             <Route path="/person/:id" element={<PersonDetail />} />
+            <Route path="/watched" element={<Watched />} />
+            <Route path="/library" element={<Library />} />
           </Routes>
         </Suspense>
       </main>
