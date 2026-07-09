@@ -25,12 +25,16 @@ export const useAppStore = create(
 )
 
 // TMDB content locale for the given UI language + watch-provider region.
-// Spanish defaults to a Latin American flavor (the region's own "es-XX"
-// tag, e.g. es-MX/es-CO) rather than es-ES, since most users detected
-// here won't be in Spain; TMDB falls back gracefully to its generic
-// Spanish translation for any es-XX without a dedicated one.
-export const tmdbLanguage = (language, region) => {
-  if (language !== 'es') return 'en-US'
-  if (region === 'ES') return 'es-ES'
-  return region ? `es-${region}` : 'es-419'
-}
+//
+// This is NOT just "es" + region: TMDB's per-country Spanish translations
+// are contributed unevenly. Verified against the live API — a title like
+// Moana has a dedicated es-MX translation ("Moana") but no es-CO/es-AR/
+// es-419 entry, so those all silently fall back to the generic Spanish
+// pool (historically Spain-sourced, "Vaiana"). es-MX is consistently the
+// most complete Latin American Spanish pool (checked "Your Name." → only
+// es-MX has "Tu nombre"; never worse than the generic pool in any title
+// tested), so it's the de facto standard for "Latin American Spanish"
+// content here — independent of the user's exact country, which is kept
+// separate and exact for watch-provider availability (see `region`).
+export const tmdbLanguage = (language, region) =>
+  language === 'es' ? (region === 'ES' ? 'es-ES' : 'es-MX') : 'en-US'
