@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Anton", "Arial Narrow", sans-serif;
+  --font-body: "Sora", system-ui, sans-serif;
+
+  --color-marquee: var(--cs-marquee);
+  --color-gold: var(--cs-gold);
+  --color-paper: var(--cs-paper);
+  --color-surface: var(--cs-surface);
+  --color-ink: var(--cs-ink);
+  --color-ink-dim: var(--cs-ink-dim);
+  --color-line: var(--cs-line);
+}
+
+/* ---- CineScope themes ---- */
+:root {
+  --cs-marquee: #d8264f;
+  --cs-gold: #cf8a24;
+  --cs-paper: #f6f6f4;
+  --cs-surface: #ffffff;
+  --cs-ink: #191921;
+  --cs-ink-dim: #6b6b76;
+  --cs-line: #e4e4e0;
+  --cs-scrim: rgba(246, 246, 244, 0);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --cs-marquee: #ff3d68;
+  --cs-gold: #e8a13b;
+  --cs-paper: #0e0e14;
+  --cs-surface: #17171f;
+  --cs-ink: #ececf1;
+  --cs-ink-dim: #8f8f9d;
+  --cs-line: #26262f;
+  --cs-scrim: rgba(14, 14, 20, 0);
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cs-paper);
+  color: var(--cs-ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Display type: cinema-poster condensed caps */
+.display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+}
+
+/* Credits-style label: wide-tracked small caps */
+.credit-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--cs-ink-dim);
+}
+
+/* ---- Signature: ticket-stub perforation on poster cards ---- */
+.ticket-edge {
+  position: relative;
+}
+.ticket-edge::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-image: radial-gradient(circle at 5px 5px, var(--cs-paper) 3.5px, transparent 4px);
+  background-size: 14px 10px;
+  background-position: 2px 0;
+}
+
+/* Horizontal carousels: hide scrollbar, keep function */
+.rail {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail > * {
+  scroll-snap-align: start;
+}
+
+/* Backdrop scrim for hero / detail headers */
+.scrim-b {
+  background: linear-gradient(to top, var(--cs-paper) 4%, var(--cs-scrim) 60%);
+}
+.scrim-l {
+  background: linear-gradient(to right, var(--cs-paper) 2%, var(--cs-scrim) 65%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
