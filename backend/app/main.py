@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import models, tmdb  # noqa: F401 — models must import before create_all
+from .config import settings
 from .database import Base, engine
 from .routers import discover, library, media
 
@@ -25,12 +26,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5175",
-        "http://127.0.0.1:5175",
-    ],
+    allow_origins=settings.cors_origins_list,
     allow_methods=["*"],
     allow_headers=["*"],
 )

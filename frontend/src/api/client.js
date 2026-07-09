@@ -1,5 +1,12 @@
 // Thin fetch wrapper over the CineScope backend with an in-module cache
 // for GETs (deduplicates identical requests across components).
+//
+// In local dev this stays empty and requests hit the Vite proxy at
+// same-origin `/api/...`. In production, set VITE_API_BASE_URL to the
+// deployed backend's URL (e.g. https://cinescope-api.onrender.com) since
+// the frontend is a static site with no proxy of its own.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
 const cache = new Map()
 const MAX_CACHE = 200
 
@@ -7,7 +14,7 @@ export async function apiGet(path, params = {}, { signal, fresh = false } = {}) 
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
   ).toString()
-  const url = `/api${path}${query ? `?${query}` : ''}`
+  const url = `${API_BASE}/api${path}${query ? `?${query}` : ''}`
 
   if (!fresh && cache.has(url)) return cache.get(url)
 
@@ -23,7 +30,7 @@ export async function apiGet(path, params = {}, { signal, fresh = false } = {}) 
 }
 
 export async function apiSend(method, path, body) {
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(`${API_BASE}/api${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,

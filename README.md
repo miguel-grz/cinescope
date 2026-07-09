@@ -17,7 +17,26 @@ What makes it different from just browsing a catalog site: the catalog is public
 
 - **Frontend:** React (Vite), React Router, Zustand, Tailwind CSS
 - **Backend:** Python + FastAPI (async), acting as a middle layer over the TMDB API — hiding the API key, caching responses and merging multiple TMDB endpoints into single, frontend-friendly responses
-- **Database:** SQLite with SQLAlchemy (development), designed to migrate to PostgreSQL
+- **Database:** SQLite with SQLAlchemy (development) / PostgreSQL (production)
 - **Data source:** [The Movie Database (TMDB)](https://www.themoviedb.org/)
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+## Deployment
+
+The frontend and backend deploy separately.
+
+**Backend (Render)** — a `render.yaml` blueprint at the repo root defines both the API web service and a free PostgreSQL database:
+
+1. On [Render](https://render.com), New → Blueprint, connect this repo.
+2. Render provisions `cinescope-api` (web service) and `cinescope-db` (Postgres), wiring `DATABASE_URL` automatically.
+3. Set the `TMDB_API_KEY` secret in the `cinescope-api` service's environment settings.
+4. Once deployed, note the service URL (e.g. `https://cinescope-api.onrender.com`).
+
+**Frontend (Vercel):**
+
+1. On [Vercel](https://vercel.com), New Project, import this repo, set the root directory to `frontend`.
+2. Add an environment variable `VITE_API_BASE_URL` set to the Render backend URL from above.
+3. Deploy. Vercel auto-detects Vite and applies the SPA rewrite rules in `frontend/vercel.json`.
+
+**Finally**, go back to the Render `cinescope-api` service and set `CORS_ORIGINS` to your Vercel URL (e.g. `https://cinescope.vercel.app`), then redeploy the backend so it accepts requests from the live frontend.
