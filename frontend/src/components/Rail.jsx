@@ -1,4 +1,5 @@
 import { MediaCard } from './MediaCard'
+import { ScrollRail } from './ScrollRail'
 
 // Horizontal scroll-snap carousel with a credits-style section header.
 export function Rail({ title, items, mediaType, action }) {
@@ -12,11 +13,11 @@ export function Rail({ title, items, mediaType, action }) {
         </h2>
         {action}
       </div>
-      <div className="rail flex gap-3 overflow-x-auto px-4 pb-10 sm:px-8">
+      <ScrollRail className="rail flex gap-3 overflow-x-auto px-4 pb-10 sm:px-8" itemCount={items.length}>
         {items.map((item) => (
           <MediaCard key={`${item.media_type || mediaType}-${item.id}`} item={item} mediaType={mediaType} />
         ))}
-      </div>
+      </ScrollRail>
     </section>
   )
 }

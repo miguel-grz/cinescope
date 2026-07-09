@@ -57,6 +57,18 @@ export const ChevronIcon = ({ size = 18, open = false }) => (
   </svg>
 )
 
+export const ArrowIcon = ({ size = 18, direction = 'right' }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    {...base}
+    style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}
+  >
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+)
+
 export const SunIcon = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
     <circle cx="12" cy="12" r="4" />

@@ -1,22 +1,24 @@
 import { useState } from 'react'
 import { useT } from '../i18n/translations'
 import { PlayIcon } from './Icons'
+import { ScrollRail } from './ScrollRail'
 
 // YouTube embeds behind a click-to-play facade: no iframe cost until play.
 export function VideoRail({ videos }) {
   const t = useT()
   if (!videos?.length) return null
+  const shown = videos.slice(0, 8)
   return (
     <section className="mt-10">
       <h2 className="mb-4 flex items-baseline gap-3">
         <span className="h-[3px] w-6 self-center bg-marquee" aria-hidden="true" />
         <span className="display text-xl sm:text-2xl">{t('videos')}</span>
       </h2>
-      <div className="rail flex gap-4 overflow-x-auto pb-4">
-        {videos.slice(0, 8).map((video) => (
+      <ScrollRail className="rail flex gap-4 overflow-x-auto pb-4" itemCount={shown.length}>
+        {shown.map((video) => (
           <VideoCard key={video.id} video={video} />
         ))}
-      </div>
+      </ScrollRail>
     </section>
   )
 }

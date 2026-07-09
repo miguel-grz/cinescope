@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom'
 import { imageUrl } from '../api/client'
 import { useT } from '../i18n/translations'
+import { ScrollRail } from './ScrollRail'
 
 export function CastRail({ cast }) {
   const t = useT()
   if (!cast?.length) return null
+  const shown = cast.slice(0, 25)
   return (
     <section className="mt-10">
       <h2 className="mb-4 flex items-baseline gap-3">
         <span className="h-[3px] w-6 self-center bg-marquee" aria-hidden="true" />
         <span className="display text-xl sm:text-2xl">{t('cast')}</span>
       </h2>
-      <div className="rail flex gap-3 overflow-x-auto pb-4">
-        {cast.slice(0, 25).map((member) => (
+      <ScrollRail className="rail flex gap-3 overflow-x-auto pb-4" itemCount={shown.length}>
+        {shown.map((member) => (
           <Link
             key={member.credit_id}
             to={`/person/${member.id}`}
@@ -38,7 +40,7 @@ export function CastRail({ cast }) {
             </div>
           </Link>
         ))}
-      </div>
+      </ScrollRail>
     </section>
   )
 }
