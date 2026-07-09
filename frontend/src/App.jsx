@@ -9,6 +9,9 @@ import { useT } from './i18n/translations'
 // Route-level code splitting: detail/library pages load on demand.
 const Search = lazy(() => import('./pages/Search').then((m) => ({ default: m.Search })))
 const Discover = lazy(() => import('./pages/Discover').then((m) => ({ default: m.Discover })))
+const MovieDetail = lazy(() => import('./pages/MovieDetail').then((m) => ({ default: m.MovieDetail })))
+const TvDetail = lazy(() => import('./pages/TvDetail').then((m) => ({ default: m.TvDetail })))
+const PersonDetail = lazy(() => import('./pages/PersonDetail').then((m) => ({ default: m.PersonDetail })))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -49,6 +52,9 @@ export default function App() {
             <Route path="/search" element={<Search />} />
             <Route path="/movies" element={<Discover mediaType="movie" key="movie" />} />
             <Route path="/tv" element={<Discover mediaType="tv" key="tv" />} />
+            <Route path="/movie/:id" element={<MovieDetail />} />
+            <Route path="/tv/:id" element={<TvDetail />} />
+            <Route path="/person/:id" element={<PersonDetail />} />
           </Routes>
         </Suspense>
       </main>
