@@ -2,15 +2,23 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { imageUrl } from '../api/client'
 import { useApi } from '../hooks/useApi'
+import { useAppStore } from '../store/useAppStore'
 import { useT } from '../i18n/translations'
 import { Grid, GridSkeleton } from '../components/Grid'
+import { ExpandableText } from '../components/ExpandableText'
 import { ErrorNote } from './Home'
+
+// Below this length a "biography" is usually just a stub TMDB imported
+// from somewhere else — not worth showing on its own, better to point
+// out to Wikipedia/IMDb instead.
+const MIN_USEFUL_BIO_LENGTH = 40
 
 // Person profile: bio, photo and full filmography sortable by
 // popularity or release date.
 export function PersonDetail() {
   const { id } = useParams()
   const t = useT()
+  const language = useAppStore((s) => s.language)
   const [tab, setTab] = useState('cast')
   const [sort, setSort] = useState('popularity')
   const { data, error, loading } = useApi(`/person/${id}/full`)
@@ -45,6 +53,9 @@ export function PersonDetail() {
 
   const photo = imageUrl(data.profile_path, 'w500')
   const hasCrew = data.crew_credits.length > 0
+  const hasUsefulBio = (data.biography || '').trim().length >= MIN_USEFUL_BIO_LENGTH
+  const wikipediaUrl = `https://${language === 'en' ? 'en' : 'es'}.wikipedia.org/w/index.php?search=${encodeURIComponent(data.name)}`
+  const imdbUrl = data.imdb_id ? `https://www.imdb.com/name/${data.imdb_id}/` : null
 
   const chip = (active) =>
     `rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
@@ -81,13 +92,27 @@ export function PersonDetail() {
               </div>
             )}
           </div>
-          {data.biography && (
-            <>
-              <h2 className="credit-label mt-6 mb-1.5">{t('biography')}</h2>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-ink line-clamp-[12]">
-                {data.biography}
-              </p>
-            </>
+          <h2 className="credit-label mt-6 mb-1.5">{t('biography')}</h2>
+          {hasUsefulBio ? (
+            <ExpandableText
+              text={data.biography}
+              lines={10}
+              className="max-w-2xl text-sm leading-relaxed text-ink"
+            />
+          ) : (
+            <div>
+              <p className="text-sm text-ink-dim">{t('no_bio_message')}</p>
+              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+                <a href={wikipediaUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-marquee hover:underline">
+                  {t('search_wikipedia')} ↗
+                </a>
+                {imdbUrl && (
+                  <a href={imdbUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-marquee hover:underline">
+                    {t('view_imdb')} ↗
+                  </a>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

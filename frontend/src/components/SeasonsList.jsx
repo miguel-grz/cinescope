@@ -65,17 +65,18 @@ export function SeasonsList({ tvId, seasons, show }) {
 function SeasonRow({ tvId, season, watchedEpisodes, onToggleEpisode }) {
   const t = useT()
   const language = useAppStore((s) => s.language)
+  const region = useAppStore((s) => s.region)
   const [open, setOpen] = useState(false)
   const [episodes, setEpisodes] = useState(null)
 
   useEffect(() => {
     if (!open || episodes) return
     let active = true
-    apiGet(`/tv/${tvId}/season/${season.season_number}`, { language: tmdbLanguage(language) })
+    apiGet(`/tv/${tvId}/season/${season.season_number}`, { language: tmdbLanguage(language, region) })
       .then((data) => active && setEpisodes(data.episodes || []))
       .catch(() => active && setEpisodes([]))
     return () => { active = false }
-  }, [open, episodes, tvId, season.season_number, language])
+  }, [open, episodes, tvId, season.season_number, language, region])
 
   return (
     <div className="overflow-hidden rounded-xl bg-surface ring-1 ring-line">

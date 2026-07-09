@@ -6,6 +6,7 @@ import { tmdbLanguage, useAppStore } from '../store/useAppStore'
 // `path === null` skips the request (for dependent queries).
 export function useApi(path, params = {}) {
   const language = useAppStore((s) => s.language)
+  const region = useAppStore((s) => s.region)
   const [state, setState] = useState({ data: null, error: null, loading: !!path })
 
   const paramsKey = JSON.stringify(params)
@@ -15,7 +16,11 @@ export function useApi(path, params = {}) {
     const controller = new AbortController()
     let active = true
     setState((s) => ({ ...s, loading: true, error: null }))
-    apiGet(path, { ...JSON.parse(paramsKey), language: tmdbLanguage(language) }, { signal: controller.signal })
+    apiGet(
+      path,
+      { ...JSON.parse(paramsKey), language: tmdbLanguage(language, region) },
+      { signal: controller.signal }
+    )
       .then((data) => active && setState({ data, error: null, loading: false }))
       .catch((error) => {
         if (active && error.name !== 'AbortError') setState({ data: null, error, loading: false })
@@ -24,7 +29,7 @@ export function useApi(path, params = {}) {
       active = false
       controller.abort()
     }
-  }, [path, paramsKey, language])
+  }, [path, paramsKey, language, region])
 
   return state
 }
