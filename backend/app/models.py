@@ -78,6 +78,9 @@ class WatchedEpisode(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tmdb_id: Mapped[int] = mapped_column(Integer, index=True)  # TV show id
+    show_title: Mapped[str] = mapped_column(String(300), nullable=True)
+    show_poster_path: Mapped[str] = mapped_column(String(200), nullable=True)
     season_number: Mapped[int] = mapped_column(Integer)
     episode_number: Mapped[int] = mapped_column(Integer)
+    episode_name: Mapped[str] = mapped_column(String(300), nullable=True)
     watched_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

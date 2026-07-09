@@ -62,10 +62,10 @@ body {
   color: var(--cs-ink-dim);
 }
 
-/* ---- Signature: ticket-stub perforation on poster cards ---- */
-.ticket-edge {
-  position: relative;
-}
+/* ---- Signature: ticket-stub perforation on poster cards ----
+   Positioning (absolute/inset/etc.) comes from Tailwind utilities on the
+   element itself — this class only adds the perforated top edge, so it
+   must not set `position` (same specificity would fight the utility). */
 .ticket-edge::before {
   content: "";
   position: absolute;
@@ -73,7 +73,7 @@ body {
   left: 0;
   right: 0;
   height: 10px;
-  background-image: radial-gradient(circle at 5px 5px, var(--cs-paper) 3.5px, transparent 4px);
+  background-image: radial-gradient(circle at 5px 5px, var(--cs-surface) 3.5px, transparent 4px);
   background-size: 14px 10px;
   background-position: 2px 0;
 }
@@ -82,12 +82,18 @@ body {
 .rail {
   scrollbar-width: none;
   scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
 }
 .rail::-webkit-scrollbar {
   display: none;
 }
 .rail > * {
   scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .rail {
+    scroll-padding-inline: 2rem;
+  }
 }
 
 /* Backdrop scrim for hero / detail headers */

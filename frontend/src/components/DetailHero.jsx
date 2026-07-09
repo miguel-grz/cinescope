@@ -13,9 +13,11 @@ export function DetailHero({ item, mediaRef, metaLine, keyCrew }) {
   const originalTitle = item.original_title || item.original_name
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative">
       {backdrop && (
-        <>
+        // Clipped to its own layer so it never crops content stacked above it
+        // (e.g. the "add to list" dropdown, which must overflow this section).
+        <div className="absolute inset-0 overflow-hidden">
           <img
             src={backdrop}
             alt=""
@@ -25,7 +27,7 @@ export function DetailHero({ item, mediaRef, metaLine, keyCrew }) {
           {/* paper-tinted wash keeps ink text readable over any backdrop, in both themes */}
           <div className="absolute inset-0 bg-paper/70" />
           <div className="scrim-b absolute inset-0" />
-        </>
+        </div>
       )}
 
       <div className="relative flex flex-col gap-8 px-4 pb-10 pt-24 sm:px-8 md:flex-row md:items-end">

@@ -100,7 +100,10 @@ function AddToList({ mediaRef }) {
         <ChevronIcon size={14} open={open} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-64 rounded-xl bg-surface p-2 shadow-xl ring-1 ring-line">
+        <div className="absolute left-0 top-full z-20 mt-2 max-h-64 w-64 overflow-y-auto rounded-xl bg-surface p-2 shadow-xl ring-1 ring-line">
+          {lists.length === 0 && (
+            <p className="px-3 py-2 text-xs text-ink-dim">{t('lists_empty')}</p>
+          )}
           {lists.map((list) => {
             const active = inList(list)
             return (

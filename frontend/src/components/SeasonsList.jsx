@@ -6,7 +6,7 @@ import { useT } from '../i18n/translations'
 import { ChevronIcon, EyeIcon, StarIcon } from './Icons'
 
 // Expandable seasons with per-episode watched toggles (stored locally).
-export function SeasonsList({ tvId, seasons }) {
+export function SeasonsList({ tvId, seasons, show }) {
   const t = useT()
   const [watchedEpisodes, setWatchedEpisodes] = useState(() => new Set())
 
@@ -18,7 +18,7 @@ export function SeasonsList({ tvId, seasons }) {
     return () => { active = false }
   }, [tvId])
 
-  const toggleEpisode = async (season, episode) => {
+  const toggleEpisode = async (season, episode, episodeName) => {
     const key = `${season}:${episode}`
     const next = new Set(watchedEpisodes)
     const wasWatched = next.has(key)
@@ -26,7 +26,15 @@ export function SeasonsList({ tvId, seasons }) {
     setWatchedEpisodes(next)
     try {
       if (wasWatched) await apiSend('DELETE', `/library/watched-episodes/${tvId}/${season}/${episode}`)
-      else await apiSend('PUT', '/library/watched-episodes', { tmdb_id: tvId, season_number: season, episode_number: episode })
+      else
+        await apiSend('PUT', '/library/watched-episodes', {
+          tmdb_id: tvId,
+          season_number: season,
+          episode_number: episode,
+          show_title: show?.title,
+          show_poster_path: show?.poster_path,
+          episode_name: episodeName,
+        })
     } catch { /* keep optimistic state; refetch on next mount */ }
   }
 
@@ -119,7 +127,7 @@ function SeasonRow({ tvId, season, watchedEpisodes, onToggleEpisode }) {
                     </span>
                   )}
                   <button
-                    onClick={() => onToggleEpisode(season.season_number, episode.episode_number)}
+                    onClick={() => onToggleEpisode(season.season_number, episode.episode_number, episode.name)}
                     aria-pressed={watched}
                     title={watched ? t('unmark') : t('mark_watched')}
                     className={`shrink-0 rounded-full p-1.5 transition-colors ${

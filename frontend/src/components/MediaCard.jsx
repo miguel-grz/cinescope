@@ -21,13 +21,21 @@ export const MediaCard = memo(function MediaCard({ item, mediaType, width = 'w-3
   const year = (ref.release_date || '').slice(0, 4)
   const poster = imageUrl(item.poster_path)
 
+  const stop = (fn) => (e) => {
+    // Buttons sit inside the poster's <Link>: stop the click from
+    // bubbling into it and navigating away.
+    e.preventDefault()
+    e.stopPropagation()
+    fn()
+  }
+
   return (
     <div className={`group relative shrink-0 ${width}`}>
       <Link
         to={`/${type}/${ref.tmdb_id}`}
         className="block overflow-hidden rounded-lg bg-surface shadow-sm ring-1 ring-line transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg focus-visible:outline-2 focus-visible:outline-marquee"
       >
-        <div className="relative aspect-[2/3] bg-line">
+        <div className="relative aspect-[2/3] overflow-hidden bg-line">
           {poster ? (
             <img
               src={poster}
@@ -51,32 +59,32 @@ export const MediaCard = memo(function MediaCard({ item, mediaType, width = 'w-3
               {ref.vote_average.toFixed(1)}
             </span>
           )}
+
+          {/* ticket-stub quick actions: slide up over the poster's bottom edge */}
+          <div className="ticket-edge absolute inset-x-0 bottom-0 flex translate-y-full items-center justify-center gap-2 bg-surface px-2 pb-2 pt-3 opacity-0 shadow-[0_-2px_8px_rgba(0,0,0,0.15)] transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100">
+            <button
+              onClick={stop(() => toggleWatched(ref))}
+              title={watched ? t('unmark') : t('mark_watched')}
+              aria-pressed={watched}
+              className={`rounded-full p-1.5 transition-colors ${watched ? 'bg-marquee text-white' : 'bg-paper text-ink-dim hover:text-marquee'}`}
+            >
+              <EyeIcon size={16} filled={watched} />
+            </button>
+            <button
+              onClick={stop(() => toggleFavorite(ref))}
+              title={favorite ? t('in_favorites') : t('add_favorite')}
+              aria-pressed={favorite}
+              className={`rounded-full p-1.5 transition-colors ${favorite ? 'bg-marquee text-white' : 'bg-paper text-ink-dim hover:text-marquee'}`}
+            >
+              <HeartIcon size={16} filled={favorite} />
+            </button>
+          </div>
         </div>
         <div className="px-2.5 py-2">
           <p className="truncate text-[13px] font-semibold leading-tight">{ref.title}</p>
           <p className="text-[11px] text-ink-dim">{year || '—'}</p>
         </div>
       </Link>
-
-      {/* ticket-stub quick actions */}
-      <div className="ticket-edge pointer-events-none absolute inset-x-0 -bottom-9 flex justify-center gap-2 rounded-b-lg bg-surface px-2 pb-2 pt-2.5 opacity-0 shadow-lg ring-1 ring-line transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
-        <button
-          onClick={() => toggleWatched(ref)}
-          title={watched ? t('unmark') : t('mark_watched')}
-          aria-pressed={watched}
-          className={`rounded-full p-1.5 transition-colors ${watched ? 'bg-marquee text-white' : 'bg-paper text-ink-dim hover:text-marquee'}`}
-        >
-          <EyeIcon size={16} filled={watched} />
-        </button>
-        <button
-          onClick={() => toggleFavorite(ref)}
-          title={favorite ? t('in_favorites') : t('add_favorite')}
-          aria-pressed={favorite}
-          className={`rounded-full p-1.5 transition-colors ${favorite ? 'bg-marquee text-white' : 'bg-paper text-ink-dim hover:text-marquee'}`}
-        >
-          <HeartIcon size={16} filled={favorite} />
-        </button>
-      </div>
     </div>
   )
 })

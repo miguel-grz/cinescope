@@ -4,7 +4,7 @@ import { toMediaRef, useLibraryStore } from '../store/useLibraryStore'
 import { useT } from '../i18n/translations'
 import { GridSkeleton, PageHeader } from '../components/Grid'
 import { HeartIcon, PlusIcon, StarIcon, XIcon } from '../components/Icons'
-import { EmptyState, MediaCardLite } from './Watched'
+import { EmptyState, MediaCardLite } from '../components/LibraryBits'
 
 // My Library: favorites, personal ratings and custom lists.
 export function Library() {

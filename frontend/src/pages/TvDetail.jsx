@@ -43,7 +43,11 @@ export function TvDetail() {
       />
       <div className="px-4 sm:px-8">
         <WatchProviders providers={data.watch_providers} />
-        <SeasonsList tvId={Number(id)} seasons={data.seasons || []} />
+        <SeasonsList
+          tvId={Number(id)}
+          seasons={data.seasons || []}
+          show={{ title: data.name, poster_path: data.poster_path }}
+        />
         <CastRail cast={data.cast} />
         <VideoRail videos={data.videos} />
       </div>

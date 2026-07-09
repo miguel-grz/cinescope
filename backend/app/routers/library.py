@@ -1,5 +1,5 @@
 """Personal library: favorites, watched, ratings and custom lists (local DB)."""
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import delete, select
@@ -93,6 +93,27 @@ def unmark_watched(media_type: str, tmdb_id: int, db: Session = Depends(get_db))
 
 
 # ---------- watched episodes ----------
+
+@router.get("/watched-episodes", response_model=List[schemas.ShowProgress])
+def watched_episodes_summary(db: Session = Depends(get_db)):
+    """Episode-level watch progress per show — distinct from a show being
+    marked watched as a whole, so partially-watched series are trackable."""
+    rows = db.scalars(
+        select(models.WatchedEpisode).order_by(models.WatchedEpisode.watched_at.desc())
+    ).all()
+    by_show: Dict[int, schemas.ShowProgress] = {}
+    for row in rows:
+        show = by_show.get(row.tmdb_id)
+        if show is None:
+            show = schemas.ShowProgress(
+                tmdb_id=row.tmdb_id, title=row.show_title, poster_path=row.show_poster_path,
+                count=0, episodes=[],
+            )
+            by_show[row.tmdb_id] = show
+        show.episodes.append(schemas.EpisodeEntry.model_validate(row))
+        show.count += 1
+    return list(by_show.values())
+
 
 @router.get("/watched-episodes/{tv_id}", response_model=List[schemas.WatchedEpisodeOut])
 def watched_episodes(tv_id: int, db: Session = Depends(get_db)):

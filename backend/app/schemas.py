@@ -62,12 +62,34 @@ class WatchedEpisodeIn(BaseModel):
     tmdb_id: int
     season_number: int
     episode_number: int
+    show_title: Optional[str] = None
+    show_poster_path: Optional[str] = None
+    episode_name: Optional[str] = None
 
 
 class WatchedEpisodeOut(WatchedEpisodeIn):
     model_config = ConfigDict(from_attributes=True)
     id: int
     watched_at: datetime
+
+
+class EpisodeEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    season_number: int
+    episode_number: int
+    episode_name: Optional[str] = None
+    watched_at: datetime
+
+
+class ShowProgress(BaseModel):
+    """One TV show's watched-episode tracking, distinct from the show itself
+    being marked "watched" as a whole."""
+    tmdb_id: int
+    title: Optional[str] = None
+    poster_path: Optional[str] = None
+    count: int
+    episodes: List[EpisodeEntry]
 
 
 class LibraryState(BaseModel):

@@ -5,6 +5,7 @@ so repeated requests within the TTL never hit TMDB — this keeps us far away
 from TMDB rate limits and makes the UI feel instant.
 """
 import asyncio
+import copy
 from typing import Any, Dict, Optional
 
 import httpx
@@ -38,13 +39,19 @@ def _cache_key(path: str, params: Dict[str, Any]) -> str:
 
 
 async def get(path: str, **params: Any) -> Dict[str, Any]:
-    """GET a TMDB endpoint, serving from cache when fresh."""
+    """GET a TMDB endpoint, serving from cache when fresh.
+
+    Always returns a deep copy: callers (e.g. the /full aggregation routes)
+    pop and reassign keys in place while reshaping the response, and doing
+    that on the cached object itself would silently corrupt it for every
+    later request within the TTL window.
+    """
     clean = {k: v for k, v in params.items() if v is not None}
     key = _cache_key(path, clean)
 
     async with _cache_lock:
         if key in _cache:
-            return _cache[key]
+            return copy.deepcopy(_cache[key])
 
     assert _client is not None, "TMDB client not initialized"
     try:
@@ -60,4 +67,4 @@ async def get(path: str, **params: Any) -> Dict[str, Any]:
     data = response.json()
     async with _cache_lock:
         _cache[key] = data
-    return data
+    return copy.deepcopy(data)
