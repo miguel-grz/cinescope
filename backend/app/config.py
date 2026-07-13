@@ -11,6 +11,17 @@ class Settings(BaseSettings):
     default_language: str = "es-ES"
     cache_ttl_seconds: int = 600
     cache_max_size: int = 2048
+    # Session cookie: signs a JWT stored as an httpOnly cookie. No default —
+    # startup fails if it's missing, so a real deployment can't run with a
+    # blank/guessable secret.
+    jwt_secret: str
+    jwt_expire_days: int = 7
+    # False/"lax" work over plain HTTP when frontend and backend share a
+    # host (e.g. localhost:5173 <-> localhost:8000 — same-site by the
+    # "site" definition, which ignores port). Cross-origin production
+    # deploys (different domains) need True/"none", set via env.
+    cookie_secure: bool = False
+    cookie_samesite: str = "lax"
     # Comma-separated list of allowed CORS origins, e.g. the deployed
     # frontend's URL in production. Defaults cover local Vite dev servers.
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5175,http://127.0.0.1:5175"

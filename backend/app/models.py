@@ -2,7 +2,8 @@
 
 All rows reference TMDB content by (tmdb_id, media_type) and denormalize the
 few display fields (title, poster, ...) the library pages need, so listing
-favorites/watched never requires a TMDB round-trip.
+favorites/watched never requires a TMDB round-trip. Library rows are scoped
+to the user who owns them via `user_id`.
 """
 from datetime import datetime
 
@@ -10,6 +11,15 @@ from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, Uniqu
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class MediaFieldsMixin:
@@ -24,25 +34,28 @@ class MediaFieldsMixin:
 
 class Favorite(MediaFieldsMixin, Base):
     __tablename__ = "favorites"
-    __table_args__ = (UniqueConstraint("tmdb_id", "media_type", name="uq_favorite"),)
+    __table_args__ = (UniqueConstraint("user_id", "tmdb_id", "media_type", name="uq_favorite"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class WatchedItem(MediaFieldsMixin, Base):
     __tablename__ = "watched"
-    __table_args__ = (UniqueConstraint("tmdb_id", "media_type", name="uq_watched"),)
+    __table_args__ = (UniqueConstraint("user_id", "tmdb_id", "media_type", name="uq_watched"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     watched_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class Rating(MediaFieldsMixin, Base):
     __tablename__ = "ratings"
-    __table_args__ = (UniqueConstraint("tmdb_id", "media_type", name="uq_rating"),)
+    __table_args__ = (UniqueConstraint("user_id", "tmdb_id", "media_type", name="uq_rating"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     score: Mapped[float] = mapped_column(Float)  # 0.5 - 10
     note: Mapped[str] = mapped_column(Text, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -52,6 +65,7 @@ class CustomList(Base):
     __tablename__ = "lists"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -74,9 +88,12 @@ class CustomListItem(MediaFieldsMixin, Base):
 
 class WatchedEpisode(Base):
     __tablename__ = "watched_episodes"
-    __table_args__ = (UniqueConstraint("tmdb_id", "season_number", "episode_number", name="uq_watched_episode"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "tmdb_id", "season_number", "episode_number", name="uq_watched_episode"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     tmdb_id: Mapped[int] = mapped_column(Integer, index=True)  # TV show id
     show_title: Mapped[str] = mapped_column(String(300), nullable=True)
     show_poster_path: Mapped[str] = mapped_column(String(200), nullable=True)

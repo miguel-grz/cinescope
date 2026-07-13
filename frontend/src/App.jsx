@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { NavBar } from './components/NavBar'
 import { Home } from './pages/Home'
 import { useAppStore } from './store/useAppStore'
+import { useAuthStore } from './store/useAuthStore'
 import { useLibraryStore } from './store/useLibraryStore'
 import { useT } from './i18n/translations'
 
@@ -14,6 +15,8 @@ const TvDetail = lazy(() => import('./pages/TvDetail').then((m) => ({ default: m
 const PersonDetail = lazy(() => import('./pages/PersonDetail').then((m) => ({ default: m.PersonDetail })))
 const Watched = lazy(() => import('./pages/Watched').then((m) => ({ default: m.Watched })))
 const Library = lazy(() => import('./pages/Library').then((m) => ({ default: m.Library })))
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })))
+const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -29,6 +32,8 @@ function Fallback() {
 export default function App() {
   const theme = useAppStore((s) => s.theme)
   const language = useAppStore((s) => s.language)
+  const checkSession = useAuthStore((s) => s.checkSession)
+  const user = useAuthStore((s) => s.user)
   const loadLibrary = useLibraryStore((s) => s.load)
 
   useEffect(() => {
@@ -40,8 +45,13 @@ export default function App() {
   }, [language])
 
   useEffect(() => {
-    loadLibrary()
-  }, [loadLibrary])
+    checkSession()
+  }, [checkSession])
+
+  useEffect(() => {
+    if (user) loadLibrary()
+    else useLibraryStore.getState().clear()
+  }, [user, loadLibrary])
 
   return (
     <>
@@ -59,6 +69,8 @@ export default function App() {
             <Route path="/person/:id" element={<PersonDetail />} />
             <Route path="/watched" element={<Watched />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </Suspense>
       </main>

@@ -18,7 +18,7 @@ export async function apiGet(path, params = {}, { signal, fresh = false } = {}) 
 
   if (!fresh && cache.has(url)) return cache.get(url)
 
-  const response = await fetch(url, { signal })
+  const response = await fetch(url, { signal, credentials: 'include' })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     throw new Error(body.detail || `Request failed (${response.status})`)
@@ -32,6 +32,7 @@ export async function apiGet(path, params = {}, { signal, fresh = false } = {}) 
 export async function apiSend(method, path, body) {
   const response = await fetch(`${API_BASE}/api${path}`, {
     method,
+    credentials: 'include',
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   })

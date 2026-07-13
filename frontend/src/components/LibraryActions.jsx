@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../store/useAuthStore'
 import { useLibraryStore } from '../store/useLibraryStore'
 import { useT } from '../i18n/translations'
 import { ChevronIcon, EyeIcon, HeartIcon, PlusIcon, StarIcon } from './Icons'
@@ -6,11 +8,27 @@ import { ChevronIcon, EyeIcon, HeartIcon, PlusIcon, StarIcon } from './Icons'
 // Full action bar for detail pages: watched, favorite, my rating, add-to-list.
 export function LibraryActions({ mediaRef }) {
   const t = useT()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const key = `${mediaRef.media_type}:${mediaRef.tmdb_id}`
   const watched = useLibraryStore((s) => s.watchedKeys.has(key))
   const favorite = useLibraryStore((s) => s.favoriteKeys.has(key))
   const rating = useLibraryStore((s) => s.ratings.get(key) ?? null)
   const { toggleWatched, toggleFavorite, setRating } = useLibraryStore.getState()
+
+  // Wraps a library action so logged-out users get sent to /login instead
+  // of hitting the backend and getting a 401.
+  const requireAuth = (action) => (...args) => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    return action(...args)
+  }
+
+  const onToggleWatched = requireAuth(() => toggleWatched(mediaRef))
+  const onToggleFavorite = requireAuth(() => toggleFavorite(mediaRef))
+  const onSetRating = requireAuth((score) => setRating(mediaRef, score))
 
   const pill = (active) =>
     `flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ring-1 transition-colors ${
@@ -21,16 +39,16 @@ export function LibraryActions({ mediaRef }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button onClick={() => toggleWatched(mediaRef)} aria-pressed={watched} className={pill(watched)}>
+      <button onClick={onToggleWatched} aria-pressed={watched} className={pill(watched)}>
         <EyeIcon size={16} filled={watched} />
         {watched ? t('marked_watched') : t('mark_watched')}
       </button>
-      <button onClick={() => toggleFavorite(mediaRef)} aria-pressed={favorite} className={pill(favorite)}>
+      <button onClick={onToggleFavorite} aria-pressed={favorite} className={pill(favorite)}>
         <HeartIcon size={16} filled={favorite} />
         {favorite ? t('in_favorites') : t('add_favorite')}
       </button>
-      <RatingControl value={rating} onChange={(score) => setRating(mediaRef, score)} />
-      <AddToList mediaRef={mediaRef} />
+      <RatingControl value={rating} onChange={onSetRating} />
+      <AddToList mediaRef={mediaRef} requireAuth={requireAuth} />
     </div>
   )
 }
@@ -69,7 +87,7 @@ function RatingControl({ value, onChange }) {
   )
 }
 
-function AddToList({ mediaRef }) {
+function AddToList({ mediaRef, requireAuth }) {
   const t = useT()
   const [open, setOpen] = useState(false)
   const [newName, setNewName] = useState('')
@@ -79,14 +97,18 @@ function AddToList({ mediaRef }) {
   const inList = (list) =>
     list.items.some((i) => i.tmdb_id === mediaRef.tmdb_id && i.media_type === mediaRef.media_type)
 
-  const createAndAdd = async (e) => {
+  const createAndAdd = requireAuth(async (e) => {
     e.preventDefault()
     const name = newName.trim()
     if (!name) return
     const created = await createList(name)
     await addToList(created.id, mediaRef)
     setNewName('')
-  }
+  })
+
+  const onToggleList = requireAuth((list) =>
+    inList(list) ? removeFromList(list.id, mediaRef) : addToList(list.id, mediaRef)
+  )
 
   return (
     <div className="relative">
@@ -109,7 +131,7 @@ function AddToList({ mediaRef }) {
             return (
               <button
                 key={list.id}
-                onClick={() => (active ? removeFromList(list.id, mediaRef) : addToList(list.id, mediaRef))}
+                onClick={() => onToggleList(list)}
                 className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-paper"
               >
                 <span className="truncate">{list.name}</span>

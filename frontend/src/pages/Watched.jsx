@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { apiGet } from '../api/client'
+import { useAuthStore } from '../store/useAuthStore'
 import { useLibraryStore, toMediaRef } from '../store/useLibraryStore'
 import { useT } from '../i18n/translations'
 import { GridSkeleton, PageHeader } from '../components/Grid'
@@ -16,16 +17,21 @@ const SORTS = [
 // Everything marked as watched, sortable, with inline unmark.
 export function Watched() {
   const t = useT()
+  const user = useAuthStore((s) => s.user)
   const [sort, setSort] = useState('watched_at')
   const [order, setOrder] = useState('desc')
   const [items, setItems] = useState(null)
   const toggleWatched = useLibraryStore((s) => s.toggleWatched)
 
   const fetchItems = useCallback(() => {
+    if (!user) {
+      setItems([])
+      return
+    }
     apiGet('/library/watched', { sort, order }, { fresh: true })
       .then(setItems)
       .catch(() => setItems([]))
-  }, [sort, order])
+  }, [user, sort, order])
 
   useEffect(() => {
     fetchItems()
@@ -65,7 +71,9 @@ export function Watched() {
         )}
       </PageHeader>
 
-      {!items ? (
+      {!user ? (
+        <EmptyState message={t('library_login_required')} />
+      ) : !items ? (
         <GridSkeleton />
       ) : items.length === 0 ? (
         <EmptyState message={t('watched_empty')} />
@@ -77,7 +85,7 @@ export function Watched() {
         </div>
       )}
 
-      <EpisodeProgress />
+      {user && <EpisodeProgress />}
     </div>
   )
 }

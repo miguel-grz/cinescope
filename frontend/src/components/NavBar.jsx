@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAppStore } from '../store/useAppStore'
+import { useAuthStore } from '../store/useAuthStore'
 import { useT } from '../i18n/translations'
 import { ApertureLogo, MoonIcon, SearchIcon, SunIcon } from './Icons'
 
@@ -13,6 +14,8 @@ export function NavBar() {
   const t = useT()
   const navigate = useNavigate()
   const { language, setLanguage, theme, toggleTheme } = useAppStore()
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
   const [query, setQuery] = useState('')
   const inputRef = useRef(null)
 
@@ -36,6 +39,11 @@ export function NavBar() {
       setQuery('')
       inputRef.current?.blur()
     }
+  }
+
+  const doLogout = async () => {
+    await logout()
+    navigate('/')
   }
 
   return (
@@ -68,7 +76,25 @@ export function NavBar() {
           </label>
         </form>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-2">
+          {user ? (
+            <>
+              <span className="hidden text-xs text-ink-dim sm:inline">{user.email}</span>
+              <button
+                onClick={doLogout}
+                className="credit-label rounded px-2 py-1 !tracking-[0.14em] transition-colors hover:!text-marquee"
+              >
+                {t('nav_logout')}
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="credit-label rounded px-2 py-1 !tracking-[0.14em] transition-colors hover:!text-marquee"
+            >
+              {t('nav_login')}
+            </Link>
+          )}
           <button
             onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
             className="credit-label rounded px-2 py-1 !tracking-[0.14em] transition-colors hover:!text-marquee"

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class MediaRef(BaseModel):
@@ -98,3 +98,21 @@ class LibraryState(BaseModel):
     watched: bool = False
     rating: Optional[float] = None
     list_ids: List[int] = []
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    # bcrypt silently ignores/rejects bytes past 72 — cap here so the error
+    # surfaces as a normal 422 instead of a confusing 500 from bcrypt.
+    password: str = Field(min_length=8, max_length=72)
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: str

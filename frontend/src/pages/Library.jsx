@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiGet } from '../api/client'
+import { useAuthStore } from '../store/useAuthStore'
 import { toMediaRef, useLibraryStore } from '../store/useLibraryStore'
 import { useT } from '../i18n/translations'
 import { GridSkeleton, PageHeader } from '../components/Grid'
@@ -21,15 +22,20 @@ export function Library() {
 function Favorites() {
   const t = useT()
   const [items, setItems] = useState(null)
+  const user = useAuthStore((s) => s.user)
   const favoriteKeys = useLibraryStore((s) => s.favoriteKeys)
   const ratings = useLibraryStore((s) => s.ratings)
   const toggleFavorite = useLibraryStore((s) => s.toggleFavorite)
 
   useEffect(() => {
+    if (!user) {
+      setItems([])
+      return
+    }
     apiGet('/library/favorites', {}, { fresh: true })
       .then(setItems)
       .catch(() => setItems([]))
-  }, [favoriteKeys.size])
+  }, [user, favoriteKeys.size])
 
   return (
     <section className="mb-12">
@@ -37,7 +43,9 @@ function Favorites() {
         <span className="h-[3px] w-6 self-center bg-marquee" aria-hidden="true" />
         <span className="display text-2xl">{t('favorites')}</span>
       </h2>
-      {!items ? (
+      {!user ? (
+        <EmptyState message={t('library_login_required')} />
+      ) : !items ? (
         <GridSkeleton count={6} />
       ) : items.length === 0 ? (
         <EmptyState message={t('favorites_empty')} />
@@ -71,6 +79,7 @@ function Favorites() {
 
 function Lists() {
   const t = useT()
+  const user = useAuthStore((s) => s.user)
   const lists = useLibraryStore((s) => s.lists)
   const { createList, deleteList, removeFromList } = useLibraryStore.getState()
   const [newName, setNewName] = useState('')
@@ -81,6 +90,18 @@ function Lists() {
     if (!name) return
     await createList(name)
     setNewName('')
+  }
+
+  if (!user) {
+    return (
+      <section>
+        <h2 className="mb-4 flex items-baseline gap-3">
+          <span className="h-[3px] w-6 self-center bg-marquee" aria-hidden="true" />
+          <span className="display text-2xl">{t('lists')}</span>
+        </h2>
+        <EmptyState message={t('library_login_required')} />
+      </section>
+    )
   }
 
   return (

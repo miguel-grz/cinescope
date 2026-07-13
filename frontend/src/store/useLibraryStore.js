@@ -27,6 +27,16 @@ export const useLibraryStore = create((set, get) => ({
   ratings: new Map(), // key -> score
   lists: [],
 
+  clear() {
+    set({
+      loaded: false,
+      watchedKeys: new Set(),
+      favoriteKeys: new Set(),
+      ratings: new Map(),
+      lists: [],
+    })
+  },
+
   async load() {
     try {
       const [watched, favorites, ratings, lists] = await Promise.all([

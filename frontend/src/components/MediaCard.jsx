@@ -1,7 +1,8 @@
 import { memo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { imageUrl } from '../api/client'
 import { toMediaRef, useLibraryStore } from '../store/useLibraryStore'
+import { useAuthStore } from '../store/useAuthStore'
 import { useT } from '../i18n/translations'
 import { EyeIcon, HeartIcon, StarIcon } from './Icons'
 
@@ -9,6 +10,8 @@ import { EyeIcon, HeartIcon, StarIcon } from './Icons'
 // hover/focus: perforated edge + watched / favorite quick toggles.
 export const MediaCard = memo(function MediaCard({ item, mediaType, width = 'w-36 sm:w-40' }) {
   const t = useT()
+  const navigate = useNavigate()
+  const user = useAuthStore((s) => s.user)
   const type = mediaType || item.media_type
   const ref = toMediaRef(item, type)
   const watched = useLibraryStore((s) => s.watchedKeys.has(`${type}:${ref.tmdb_id}`))
@@ -26,6 +29,12 @@ export const MediaCard = memo(function MediaCard({ item, mediaType, width = 'w-3
     // bubbling into it and navigating away.
     e.preventDefault()
     e.stopPropagation()
+    // Logged-out users get sent to /login instead of optimistically
+    // flipping the card's state and hitting the backend with a 401.
+    if (!user) {
+      navigate('/login')
+      return
+    }
     fn()
   }
 

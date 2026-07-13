@@ -3,10 +3,14 @@ import asyncio
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-from .. import tmdb
+from .. import models, tmdb
 from ..config import settings
+from ..database import get_db
+from .auth import get_current_user
 
 router = APIRouter(tags=["discover"])
 
@@ -79,6 +83,28 @@ async def genres(language: Optional[str] = LanguageQuery):
         tmdb.get("/genre/tv/list", language=lang),
     )
     return {"movie": movie_genres["genres"], "tv": tv_genres["genres"]}
+
+
+@router.get("/discover/for-you")
+async def for_you(
+    language: Optional[str] = LanguageQuery,
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Minimal personalized recommendations: TMDB `recommendations` for the
+    user's highest-rated title, falling back to their most recently watched
+    one. Blending multiple signals is a future iteration, not this one."""
+    seed = db.scalar(select(models.Rating).filter_by(user_id=user.id).order_by(models.Rating.score.desc()))
+    if seed is None:
+        seed = db.scalar(
+            select(models.WatchedItem).filter_by(user_id=user.id).order_by(models.WatchedItem.watched_at.desc())
+        )
+    if seed is None:
+        return {"results": []}
+    data = await tmdb.get(f"/{seed.media_type}/{seed.tmdb_id}/recommendations", language=_lang(language))
+    for item in data["results"]:
+        item.setdefault("media_type", seed.media_type)
+    return data
 
 
 @router.get("/discover/{media_type}")
